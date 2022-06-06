@@ -31,10 +31,22 @@
       <el-table-column label="操作" width="140">
         <template slot-scope="scope">
           <el-button @click="SignIn(scope.row)" type="text" size="small">签到</el-button>
-          <el-button type="text" size="small">编辑</el-button>
+          <el-button @click="ShowModifyStateDialog(scope.row)" type="text" size="small"
+            >编辑</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
+    <el-dialog
+      title="修改状态"
+      :visible.sync="dialogModifyState"
+      custom-class="pyz-el-dialog"
+    >
+      <el-radio-group v-model="state" size="medium" @change="ModifyState">
+        <el-radio-button label="0">在校</el-radio-button>
+        <el-radio-button label="-1">在家</el-radio-button>
+      </el-radio-group>
+    </el-dialog>
   </div>
 </template>
 
@@ -108,7 +120,7 @@ export default {
         .then(() => {
           this.api("get", "/student/api/refresh", null);
           setTimeout(function () {
-            location.reload();
+            window.location.reload();
           }, 1000);
         })
         .catch(() => {});
@@ -121,10 +133,29 @@ export default {
         this.api("post", "/student/api/modify/state", fd);
       }
     },
+    ShowModifyStateDialog(row) {
+      this.dialogModifyState = true;
+      this.selected.name = row.name;
+      this.state = row.state;
+    },
+    ModifyState(state) {
+      let fd = new FormData();
+      fd.append("name", this.selected.name);
+      fd.append("state", state);
+      this.api("post", "/student/api/modify/state", fd);
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
+    },
   },
   data() {
     return {
       student: [],
+      dialogModifyState: false,
+      state: null,
+      selected: {
+        name: null,
+      },
     };
   },
   mounted() {
@@ -135,6 +166,9 @@ export default {
 
 <style>
 .pyz-confirm {
+  max-width: 90%;
+}
+.pyz-el-dialog {
   max-width: 90%;
 }
 </style>
